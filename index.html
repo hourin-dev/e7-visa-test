@@ -3,70 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>환영 메시지 테스트</title>
+    <title>E-7-4 비자 점수 계산기</title>
     <style>
-        /* 폼 전체를 화면 중앙에 배치하는 CSS */
-        body, html {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Malgun Gothic', sans-serif;
-            background-color: #f0f4f7;
-        }
-
-        .container {
-            text-align: center;
-            padding: 30px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background-color: #f0f4f7; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); max-width: 450px; margin: 0 auto; }
+        h1 { text-align: center; color: #004d99; }
+        h2 { color: #004d99; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-top: 20px; font-size: 1.2em; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        small { color: #888; font-size: 0.85em; margin-top: 3px; display: block; }
 
         /* 버튼 스타일 */
-        #welcomeButton {
-            padding: 15px 30px;
-            font-size: 1.1em;
-            color: white;
-            background-color: #007bff; /* 파란색 버튼 */
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-bottom: 20px;
-        }
+        .button-group button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1em; transition: background-color 0.3s; }
+        #calculateButton { background-color: #007bff; color: white; }
+        #calculateButton:hover { background-color: #0056b3; }
+        
+        #newInputButton { background-color: #6c757d; color: white; }
+        #newInputButton:hover { background-color: #5a6268; }
 
-        #welcomeButton:hover {
-            background-color: #0056b3;
-        }
 
-        /* 메시지 출력 영역 스타일 */
-        #messageOutput {
-            font-size: 1.5em;
-            color: #28a745; /* 녹색 텍스트 */
-            min-height: 40px; /* 메시지가 없을 때 공간 확보 */
-            font-weight: bold;
-        }
+        /* 결과 영역 스타일 */
+        #results { margin-top: 25px; padding: 15px; border: 1px solid #004d99; border-radius: 8px; background-color: #e9f7ff; }
+        .final-score { font-size: 1.4em; font-weight: bold; color: #cc0000; margin: 10px 0; }
+        .eligibility { font-size: 1.2em; font-weight: bold; padding: 10px; border-radius: 4px; text-align: center; margin-top: 15px; }
+        .eligible { background-color: #d4edda; color: #155724; }
+        .not-eligible { background-color: #f8d7da; color: #721c24; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        .detail-table th, .detail-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .detail-table th { background-color: #f0f0f0; }
+        .status-ok { color: #28a745; font-weight: bold; }
+        .status-fail { color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>테스트 화면</h1>
+        <h1>E-7-4 비자 점수 계산기</h1>
         
-        <button id="welcomeButton">
-            인사말 보기
-        </button>
+        <div id="input-area">
+            <h2>1. 필수 기본 항목 (최대 300점)</h2>
+            <label for="income">연간 평균 소득 (원, 최근 2년 평균):</label>
+            <input type="number" id="income" value="30000000" min="0">
+            <small>※ 2,500만원 미만 시 0점 (최소 50점 필수)</small>
 
-        <div id="messageOutput"></div>
+            <label for="korean_level">한국어 능력 (TOPIK 급수 또는 KIIP 단계):</label>
+            <input type="number" id="korean_level" value="3" min="1" max="5">
+            <small>※ 2급/2단계 미만 시 0점 (최소 50점 필수)</small>
+
+            <label for="age">만 나이:</label>
+            <input type="number" id="age" value="30" min="19">
+
+            <h2>2. 기타 항목</h2>
+            <label for="optional">선택 항목 총점 (학력, 자산, 경력 등):</label>
+            <input type="number" id="optional" value="15" min="0" max="60">
+
+            <label for="bonus">가점 총점 (추천, 장기근속 등):</label>
+            <input type="number" id="bonus" value="10" min="0" max="35">
+            
+            <label for="penalty">감점 총점 (범법 사실 등):</label>
+            <input type="number" id="penalty" value="0" min="0" max="50">
+
+            <div class="button-group">
+                <button id="calculateButton" onclick="calculateScore()">E-7-4 점수 계산하기</button>
+            </div>
+        </div>
+
+        <div id="results" style="display:none;">
+            <h2>3. 계산 결과 및 진단</h2>
+            <div id="score_details"></div>
+            
+            <div class="final-score">총 합산 점수: <span id="final_score_value">0</span>점</div>
+            <div id="eligibility_status" class="eligibility"></div>
+            
+            <button id="newInputButton" onclick="resetForm()">New (새 입력 시작)</button>
+        </div>
     </div>
 
     <script>
-        // JavaScript 코드
-        document.getElementById('welcomeButton').onclick = function() {
-            // 버튼 클릭 시 실행되는 함수
-            document.getElementById('messageOutput').innerText = "법무법인 대림에 오신 것을 환영합니다";
+        // 초기 입력값 설정
+        const initialValues = {
+            income: 30000000,
+            korean_level: 3,
+            age: 30,
+            optional: 15,
+            bonus: 10,
+            penalty: 0
         };
+
+        // E-7-4 점수 계산 함수
+        function calculateScore() {
+            // 1. INPUT 값 가져오기
+            const income = parseInt(document.getElementById('income').value) || 0;
+            const koreanLevel = parseInt(document.getElementById('korean_level').value) || 0;
+            const age = parseInt(document.getElementById('age').value) || 0;
+            const optional = parseInt(document.getElementById('optional').value) || 0;
+            const bonus = parseInt(document.getElementById('bonus').value) || 0;
+            const penalty = parseInt(document.getElementById('penalty').value) || 0;
+
+            // 2. 점수 로직 
+            
+            // 소득 점수
+            let incomeScore = 0;
+            if (income >= 40000000) incomeScore = 120;
+            else if (income >= 35000000) incomeScore = 90;
+            else if (income >= 30000000) incomeScore = 70;
+            else if (income >= 25000000) incomeScore = 50;
+            else incomeScore = 0;
+
+            // 한국어 점수
+            let koreanScore = 0;
+            if (koreanLevel >= 4) koreanScore = 120;
+            else if (koreanLevel === 3) koreanScore = 80;
+            else if (koreanLevel === 2) koreanScore = 50;
+            else koreanScore = 0;
+
+            // 나이 점수
+            let ageScore = 0;
+            if (age >= 19 && age <= 26) ageScore = 60;
+            else if (age >= 27 && age <= 33) ageScore = 50;
+            else if (age >= 34 && age <= 40) ageScore = 30;
+            else if (age >= 41) ageScore = 10; 
+            
+            // 3. 최종 계산
+            const totalScore = incomeScore + koreanScore + ageScore + optional + bonus - penalty;
+            
+            // 4. 필수 요건 확인
+            const isIncomeMinMet = incomeScore >= 50;
+            const isKoreanMinMet = koreanScore >= 50;
+            const isTotalScoreMet = totalScore >= 200;
+            const isEligible = isIncomeMinMet && isKoreanMinMet && isTotalScoreMet;
+
+            // 5. 결과 HTML 생성
+            document.getElementById('final_score_value').innerText = totalScore;
+            
+            const detailsHtml = `
+                <table class="detail-table">
+                    <tr><th>구분</th><th>득점 점수</th><th>최소 필수 점수</th><th>충족</th></tr>
+                    <tr>
+                        <td>소득 (${(income / 10000).toLocaleString()}만원)</td>
+                        <td>${incomeScore}점</td>
+                        <td>50점</td>
+                        <td class="${isIncomeMinMet ? 'status-ok' : 'status-fail'}">${isIncomeMinMet ? '✅ 충족' : '❌ 미달'}</td>
+                    </tr>
+                    <tr>
+                        <td>한국어 (${koreanLevel}단계)</td>
+                        <td>${koreanScore}점</td>
+                        <td>50점</td>
+                        <td class="${isKoreanMinMet ? 'status-ok' : 'status-fail'}">${isKoreanMinMet ? '✅ 충족' : '❌ 미달'}</td>
+                    </tr>
+                    <tr>
+                        <td>나이 (${age}세)</td>
+                        <td>${ageScore}점</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>선택 항목</td>
+                        <td>${optional}점</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>가점/감점</td>
+                        <td>+${bonus}점 / -${penalty}점</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                </table>
+            `;
+            document.getElementById('score_details').innerHTML = detailsHtml;
+
+            const eligibilityDiv = document.getElementById('eligibility_status');
+            eligibilityDiv.classList.remove('eligible', 'not-eligible');
+            
+            if (isEligible) {
+                eligibilityDiv.innerText = "🎉 축하합니다! 모든 필수 요건을 충족하여 전환 가능성이 높습니다.";
+                eligibilityDiv.classList.add('eligible');
+            } else {
+                let reason = "⚠️ 요건 미충족";
+                if (!isTotalScoreMet) reason += " (총점 200점 미달)";
+                if (!isIncomeMinMet) reason += " (소득 최소 미달)";
+                if (!isKoreanMinMet) reason += " (한국어 최소 미달)";
+                
+                eligibilityDiv.innerText = reason;
+                eligibilityDiv.classList.add('not-eligible');
+            }
+            
+            // 계산 후 결과 영역 보이기
+            document.getElementById('results').style.display = 'block';
+            // 입력 영역 스크롤을 결과 영역으로 이동 (휴대폰 사용 편의성)
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+        }
+
+        // 입력 폼 초기화 함수 (New 버튼 클릭 시)
+        function resetForm() {
+            // 1. 입력 필드 초기값으로 되돌리기
+            document.getElementById('income').value = initialValues.income;
+            document.getElementById('korean_level').value = initialValues.korean_level;
+            document.getElementById('age').value = initialValues.age;
+            document.getElementById('optional').value = initialValues.optional;
+            document.getElementById('bonus').value = initialValues.bonus;
+            document.getElementById('penalty').value = initialValues.penalty;
+            
+            // 2. 결과 영역 숨기기
+            document.getElementById('results').style.display = 'none';
+
+            // 3. 입력 영역으로 스크롤 이동
+            document.getElementById('input-area').scrollIntoView({ behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
