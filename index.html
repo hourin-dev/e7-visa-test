@@ -277,3 +277,37 @@
                 eligibilityDiv.innerText = reason;
                 eligibilityDiv.classList.add('not-eligible');
             }
+            
+            // 계산 후 결과 영역 보이기
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 입력 폼 초기화 함수 (New 버튼 클릭 시)
+        function resetForm() {
+            // 1. 입력 필드 초기값으로 되돌리기
+            document.getElementById('income').value = initialValues.income;
+            document.getElementById('korean_level').value = initialValues.korean_level;
+            document.getElementById('age').value = initialValues.age;
+            document.getElementById('violation_count').value = initialValues.violation_count;
+            
+            // 드롭다운 및 체크박스 초기화
+            document.getElementById('education').value = '0';
+            document.getElementById('assets').value = '0';
+            document.getElementById('experience').value = '0';
+            document.getElementById('kiip').value = '0';
+            document.getElementById('long_term').value = '0';
+            document.getElementById('domestic_study').checked = false;
+            document.getElementById('certificate').checked = false;
+            document.getElementById('recommendation').checked = false;
+            document.getElementById('crime_penalty').checked = false;
+            
+            // 2. 결과 영역 숨기기
+            document.getElementById('results').style.display = 'none';
+
+            // 3. 입력 영역으로 스크롤 이동
+            document.getElementById('input-area').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
