@@ -1,9 +1,8 @@
 /**
  * e74.js: E-7-4 숙련기능인력 점수 계산 및 진단 로직 (최신 개정안 반영)
- * * 주의: 이 함수는 이전에 최종 합의된 HTML의 ID (income, korean_level 등)를 사용합니다.
- * 만약 HTML 파일의 ID가 질문의 예시 ID(e74_income 등)와 다르다면 HTML 파일을 확인하십시오.
+ * * 함수명을 HTML의 onclick 이벤트와 일치하도록 'calculateScore'로 변경했습니다.
  */
-function calculateE74() {
+function calculateScore() {
     // ==========================================================
     // 1. 입력 값 파싱 (HTML ID 기반)
     // ==========================================================
@@ -26,7 +25,9 @@ function calculateE74() {
     const violationCount = parseInt(document.getElementById('violation_count').value) || 0;
     const majorPenalty = document.getElementById('major_penalty').checked;
     
-    const resultBox = document.getElementById('e74Result'); // 결과 출력 ID는 'e74Result'로 유지
+    // index.html에는 'e74Result' ID가 없으므로, 'results' div 내부의 'score_details'를 사용하거나,
+    // HTML에 e74Result ID를 추가해야 합니다. 여기서는 HTML에 맞춰 결과 출력을 HTML의 ID에 직접 접근하도록 수정하겠습니다.
+    const resultBox = document.getElementById('score_details'); // 결과 출력을 위한 DOM ID를 'score_details'로 가정 (HTML에 기반)
     
     let incomeScore = 0;
     let koreanScore = 0;
@@ -116,53 +117,73 @@ function calculateE74() {
     const isTotalScoreMet = totalScore >= REQUIRED_MIN_SCORE;
     const isEligible = isIncomeMinMet && isKoreanMinMet && isTotalScoreMet && !majorFailure;
 
-    // 7. 최종 진단 출력
+    // 7. 최종 진단 출력 (HTML 구조에 맞춰 결과 출력 로직 재정의)
+    
+    // 7-1. 상세 점수 테이블 생성
+    const detailsHtml = `
+        <table class="detail-table">
+            <tr><th>구분</th><th>점수</th><th>최소 필수</th><th>충족</th></tr>
+            <tr>
+                <td>소득 (${(income / 10000).toLocaleString()}만원)</td>
+                <td>${incomeScore}점</td>
+                <td>50점</td>
+                <td class="${isIncomeMinMet ? 'status-ok' : 'status-fail'}">${isIncomeMinMet ? '✅ 충족' : '❌ 미달'}</td>
+            </tr>
+            <tr>
+                <td>한국어 (${koreanLevel}단계)</td>
+                <td>${koreanScore}점</td>
+                <td>50점</td>
+                <td class="${isKoreanMinMet ? 'status-ok' : 'status-fail'}">${isKoreanMinMet ? '✅ 충족' : '❌ 미달'}</td>
+            </tr>
+            <tr>
+                <td>나이 (${age}세)</td>
+                <td>${ageScore}점</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>**가점 총점**</td>
+                <td>**+${bonusScore}점**</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>**감점 총점**</td>
+                <td style="color: red;">**-${penaltyScore}점**</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+        </table>
+    `;
+    document.getElementById('score_details').innerHTML = detailsHtml;
+
+    // 7-2. 최종 진단 상태 출력
+    const eligibilityDiv = document.getElementById('eligibility_status');
+    eligibilityDiv.classList.remove('eligible', 'not-eligible');
+    
     let diagnosisStatus = '';
-    let resultColor = 'red';
-    let requiredMessage = '';
 
     if (majorFailure) {
-        diagnosisStatus = '⛔ 불허 (중대 결격 사유 해당)';
-        resultColor = 'red';
-        requiredMessage = '🚨 벌금 100만원 이상 또는 출입국 관리법 4회 이상 위반 등으로 전환이 불가합니다.';
-    } else if (!isIncomeMinMet || !isKoreanMinMet) {
-        diagnosisStatus = '⛔ 불허 (필수 기본 요건 미충족)';
-        resultColor = 'red';
-        if (!isIncomeMinMet) requiredMessage += '소득 점수(최소 50점) 미달. ';
-        if (!isKoreanMinMet) requiredMessage += '한국어 점수(최소 50점) 미달.';
+        diagnosisStatus = "🚨 불허 사유 해당: 벌금 100만원 이상 또는 출입국 관리법 4회 이상 위반 등으로 전환 불가";
+        eligibilityDiv.classList.add('not-eligible');
     } else if (isEligible) {
-        diagnosisStatus = '✅ 적격 (PASS) - 합격 가능성이 높습니다.';
-        resultColor = 'green';
+        diagnosisStatus = "🎉 축하합니다! 모든 필수 요건을 충족하여 전환 가능성이 높습니다. (총점 200점 이상)";
+        eligibilityDiv.classList.add('eligible');
     } else {
-        diagnosisStatus = '⚠️ 부적격 (총점 미달)';
-        resultColor = 'orange';
-        requiredMessage = `총점(${totalScore}점)이 합격 기준(${REQUIRED_MIN_SCORE}점)에 미달합니다.`;
+        let reason = "⚠️ 요건 미충족";
+        if (!isTotalScoreMet) reason += " (총점 200점 미달)";
+        if (!isIncomeMinMet) reason += " (소득 최소 50점 미달)";
+        if (!isKoreanMinMet) reason += " (한국어 최소 50점 미달)";
+        
+        diagnosisStatus = reason;
+        eligibilityDiv.classList.add('not-eligible');
     }
+
+    // 7-3. 최종 점수 및 진단 텍스트 업데이트
+    document.getElementById('final_score_value').innerText = totalScore;
+    eligibilityDiv.innerText = diagnosisStatus;
     
-    resultBox.innerHTML = `
-        <h3>✨ E-7-4 최종 진단 결과</h3>
-        <p><strong>총 점수:</strong> <span style="font-size: 1.5em; font-weight: 900; color: ${resultColor};">${totalScore}점</span> (기준 ${REQUIRED_MIN_SCORE}점)</p>
-        <p><strong>최종 진단:</strong> <span style="font-weight: bold; color: ${resultColor};">${diagnosisStatus}</span></p>
-        ${requiredMessage ? `<p style="color:red; font-weight:bold;">필수 요건 미충족 사유: ${requiredMessage}</p>` : ''}
-        <hr>
-        <h4>[항목별 상세 배정 점수]</h4>
-        <ul style="list-style-type: none; padding-left: 0;">
-             <li style="font-weight: bold; margin-bottom: 5px;">기본 점수 (Max 300점)</li>
-             <li>- ① 평균 소득: <strong>${incomeScore}점</strong> (최소 50점)</li>
-             <li>- ② 한국어 능력: <strong>${koreanScore}점</strong> (최소 50점)</li>
-             <li>- ③ 나이: <strong>${ageScore}점</strong></li>
-             <li style="font-weight: bold; margin-top: 10px;">가점/감점</li>
-             <li>- 가점 합계: <strong style="color: green;">+${bonusScore}점</strong></li>
-             <li>- 감점 합계: <strong style="color: red;">-${penaltyScore}점</strong></li>
-        </ul>
-    `;
-    
-    // (선택 사항: e74Result 외에 다른 HTML 영역에 결과를 업데이트하려면 이 부분을 추가해야 함)
-    // 예: document.getElementById('eligibility_status').innerText = diagnosisStatus;
+    // 7-4. 결과 영역 보이기
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 }
-
-// ⚠️ E-7-4 점수 계산 함수명이 'calculateE74'로 변경되었으므로,
-// HTML 파일의 버튼 onclick 이벤트도 'calculateE74()'로 수정되어야 합니다. 
-// (이전 HTML 파일은 'calculateScore()'였음)
-
-//
