@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-7-4 비자 점수 계산기 (개정 점수제 반영)</title>
+    <title>E-7-4 비자 점수 계산기 (최신 개정 통합본)</title>
     <style>
-        /* ... (CSS 스타일 생략) ... */
+        /* CSS 스타일 시작 */
         body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background-color: #f0f4f7; }
         .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); max-width: 450px; margin: 0 auto; }
         h1 { text-align: center; color: #004d99; }
@@ -29,6 +29,7 @@
         .detail-table th { background-color: #f0f0f0; }
         .status-ok { color: #28a745; font-weight: bold; }
         .status-fail { color: #dc3545; font-weight: bold; }
+        /* CSS 스타일 끝 */
     </style>
 </head>
 <body>
@@ -120,47 +121,127 @@
         </div>
     </div>
 
-    <script src="e74.js"></script> 
-    
     <script>
-        // 초기 입력값 설정
-        const initialValues = {
-            income: 30000000,
-            korean_level: 3,
-            age: 30,
-            fine_count: 0,
-            tax_arrear_count: 0,
-            violation_count: 0
-        };
-        
-        // 입력 폼 초기화 함수 (New 버튼 클릭 시)
-        function resetForm() {
-            // 1. 입력 필드 초기값으로 되돌리기
-            document.getElementById('income').value = initialValues.income;
-            document.getElementById('korean_level').value = initialValues.korean_level;
-            document.getElementById('age').value = initialValues.age;
-            document.getElementById('fine_count').value = initialValues.fine_count;
-            document.getElementById('tax_arrear_count').value = initialValues.tax_arrear_count;
-            document.getElementById('violation_count').value = initialValues.violation_count;
+        // E-7-4 점수 계산 로직 (e74.js 파일의 내용이 여기에 통합됨)
+        function calculateScore() {
+            // ==========================================================
+            // 1. 입력 값 파싱 (HTML ID 기반)
+            // ==========================================================
+            const income = parseInt(document.getElementById('income').value) || 0;
+            const koreanLevel = parseInt(document.getElementById('korean_level').value) || 0;
+            const age = parseInt(document.getElementById('age').value) || 0;
             
-            // 드롭다운 및 체크박스 초기화
-            document.getElementById('korean_level').value = '3'; // 기본값 3단계
-            document.getElementById('rec_central').checked = false;
-            document.getElementById('rec_local').checked = false;
-            document.getElementById('rec_corp').checked = false;
-            document.getElementById('long_service').checked = false;
-            document.getElementById('local_area_work').checked = false;
-            document.getElementById('tech_degree').checked = false;
-            document.getElementById('driving_license').checked = false;
-            document.getElementById('major_penalty').checked = false;
-            document.getElementById('career').value = '0'; // Hidden field 초기화
-            
-            // 2. 결과 영역 숨기기
-            document.getElementById('results').style.display = 'none';
+            // 가점 체크박스
+            const recCentral = document.getElementById('rec_central').checked;
+            const recLocal = document.getElementById('rec_local').checked;
+            const recCorp = document.getElementById('rec_corp').checked;
+            const longService = document.getElementById('long_service').checked;
+            const localAreaWork = document.getElementById('local_area_work').checked;
+            const techDegree = document.getElementById('tech_degree').checked;
+            const drivingLicense = document.getElementById('driving_license').checked;
 
-            // 3. 입력 영역으로 스크롤 이동
-            document.getElementById('input-area').scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
-</body>
-</html>
+            // 감점 입력
+            const fineCount = parseInt(document.getElementById('fine_count').value) || 0;
+            const taxArrearCount = parseInt(document.getElementById('tax_arrear_count').value) || 0;
+            const violationCount = parseInt(document.getElementById('violation_count').value) || 0;
+            const majorPenalty = document.getElementById('major_penalty').checked;
+            
+            let incomeScore = 0;
+            let koreanScore = 0;
+            let ageScore = 0;
+            let bonusScore = 0;
+            let penaltyScore = 0;
+            let totalScore = 0;
+            
+            const REQUIRED_MIN_SCORE = 200;
+            const REQUIRED_MIN_POINT = 50; 
+
+            // ==========================================================
+            // 2. 기본 항목 점수 계산 (최대 300점)
+            // ==========================================================
+            
+            // 2-1. 소득 점수 (최대 120점)
+            if (income >= 50000000) incomeScore = 120;
+            else if (income >= 45000000) incomeScore = 110;
+            else if (income >= 40000000) incomeScore = 95;
+            else if (income >= 35000000) incomeScore = 80;
+            else if (income >= 30000000) incomeScore = 65;
+            else if (income >= 25000000) incomeScore = 50;
+
+            // 2-2. 한국어 점수 (최대 120점)
+            if (koreanLevel >= 4) koreanScore = 120;
+            else if (koreanLevel === 3) koreanScore = 80;
+            else if (koreanLevel === 2) koreanScore = 50;
+            
+            // 2-3. 나이 점수 (최대 60점)
+            if (age >= 27 && age <= 33) ageScore = 60;
+            else if (age >= 19 && age <= 26) ageScore = 40;
+            else if (age >= 34 && age <= 40) ageScore = 30;
+            else if (age >= 41) ageScore = 10;
+            
+            // ==========================================================
+            // 3. 가점 항목 점수 계산
+            // ==========================================================
+            
+            // 추천 (중앙부처/지자체 중 최대 30점)
+            let recMax = 0;
+            if (recCentral || recLocal) {
+                recMax = 30;
+            }
+            bonusScore += recMax;
+            
+            // 기업체 추천
+            bonusScore += recCorp ? 50 : 0;
+            
+            // 기타 가점
+            bonusScore += longService ? 20 : 0;
+            bonusScore += localAreaWork ? 20 : 0;
+            bonusScore += techDegree ? 20 : 0;
+            bonusScore += drivingLicense ? 10 : 0;
+            
+            // ==========================================================
+            // 4. 감점 항목 점수 계산
+            // ==========================================================
+            
+            // 4-1. 벌금형 (100만원 미만)
+            if (fineCount === 1) penaltyScore += 5;
+            else if (fineCount === 2) penaltyScore += 10;
+            else if (fineCount >= 3) penaltyScore += 20;
+
+            // 4-2. 조세 체납 (체류 허가 제한 사실)
+            if (taxArrearCount === 1) penaltyScore += 5;
+            else if (taxArrearCount === 2) penaltyScore += 10;
+            else if (taxArrearCount >= 3) penaltyScore += 15;
+            
+            // 4-3. 출입국관리법 위반 (3회 이하)
+            if (violationCount === 1) penaltyScore += 5;
+            else if (violationCount === 2) penaltyScore += 10;
+            else if (violationCount >= 3) penaltyScore += 15;
+            
+            // 4-4. 중대 제외 사유 (벌금 100만원 이상, 4회 이상 위반 등)
+            let majorFailure = false;
+            if (majorPenalty || violationCount > 3) {
+                 penaltyScore += 50; // 불허 사유는 50점으로 간주하여 최종 진단에 사용
+                 majorFailure = true;
+            }
+
+            // 5. 최종 계산
+            totalScore = incomeScore + koreanScore + ageScore + bonusScore - penaltyScore;
+            
+            // 6. 필수 요건 확인
+            const isIncomeMinMet = incomeScore >= REQUIRED_MIN_POINT;
+            const isKoreanMinMet = koreanScore >= REQUIRED_MIN_POINT;
+            const isTotalScoreMet = totalScore >= REQUIRED_MIN_SCORE;
+            const isEligible = isIncomeMinMet && isKoreanMinMet && isTotalScoreMet && !majorFailure;
+
+            // 7. 최종 진단 출력
+            
+            // 7-1. 상세 점수 테이블 생성
+            const detailsHtml = `
+                <table class="detail-table">
+                    <tr><th>구분</th><th>점수</th><th>최소 필수</th><th>충족</th></tr>
+                    <tr>
+                        <td>소득 (${(income / 10000).toLocaleString()}만원)</td>
+                        <td>${incomeScore}점</td>
+                        <td>50점</td>
+                        <td class="${isIncomeMinMet ? 'status-ok' : 'status-fail'}">${isIncomeMinMet ?
