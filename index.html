@@ -122,7 +122,7 @@
     </div>
 
     <script>
-        // E-7-4 점수 계산 로직 (e74.js 파일의 내용이 여기에 통합됨)
+        // E-7-4 점수 계산 로직 (수정 완료)
         function calculateScore() {
             // ==========================================================
             // 1. 입력 값 파싱 (HTML ID 기반)
@@ -236,7 +236,7 @@
 
             // 7. 최종 진단 출력
             
-            // 7-1. 상세 점수 테이블 생성
+            // 7-1. 상세 점수 테이블 생성 (오류 수정 완료)
             const detailsHtml = `
                 <table class="detail-table">
                     <tr><th>구분</th><th>점수</th><th>최소 필수</th><th>충족</th></tr>
@@ -244,4 +244,105 @@
                         <td>소득 (${(income / 10000).toLocaleString()}만원)</td>
                         <td>${incomeScore}점</td>
                         <td>50점</td>
-                        <td class="${isIncomeMinMet ? 'status-ok' : 'status-fail'}">${isIncomeMinMet ?
+                        <td class="${isIncomeMinMet ? 'status-ok' : 'status-fail'}">${isIncomeMinMet ? '✅ 충족' : '❌ 미달'}</td>
+                    </tr>
+                    <tr>
+                        <td>한국어 (${koreanLevel}단계)</td>
+                        <td>${koreanScore}점</td>
+                        <td>50점</td>
+                        <td class="${isKoreanMinMet ? 'status-ok' : 'status-fail'}">${isKoreanMinMet ? '✅ 충족' : '❌ 미달'}</td>
+                    </tr>
+                    <tr>
+                        <td>나이 (${age}세)</td>
+                        <td>${ageScore}점</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>**가점 총점**</td>
+                        <td>**+${bonusScore}점**</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>**감점 총점**</td>
+                        <td style="color: red;">**-${penaltyScore}점**</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                </table>
+            `;
+            document.getElementById('score_details').innerHTML = detailsHtml;
+
+            // 7-2. 최종 진단 상태 출력
+            const eligibilityDiv = document.getElementById('eligibility_status');
+            eligibilityDiv.classList.remove('eligible', 'not-eligible');
+            
+            let diagnosisStatus = '';
+
+            if (majorFailure) {
+                diagnosisStatus = "🚨 불허 사유 해당: 벌금 100만원 이상 또는 출입국 관리법 4회 이상 위반 등으로 전환 불가";
+                eligibilityDiv.classList.add('not-eligible');
+            } else if (isEligible) {
+                diagnosisStatus = "🎉 축하합니다! 모든 필수 요건을 충족하여 전환 가능성이 높습니다. (총점 200점 이상)";
+                eligibilityDiv.classList.add('eligible');
+            } else {
+                let reason = "⚠️ 요건 미충족";
+                if (!isTotalScoreMet) reason += " (총점 200점 미달)";
+                if (!isIncomeMinMet) reason += " (소득 최소 50점 미달)";
+                if (!isKoreanMinMet) reason += " (한국어 최소 50점 미달)";
+                
+                diagnosisStatus = reason;
+                eligibilityDiv.classList.add('not-eligible');
+            }
+
+            // 7-3. 최종 점수 및 진단 텍스트 업데이트
+            document.getElementById('final_score_value').innerText = totalScore;
+            eligibilityDiv.innerText = diagnosisStatus;
+            
+            // 7-4. 결과 영역 보이기
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 초기 입력값 설정
+        const initialValues = {
+            income: 30000000,
+            korean_level: 3,
+            age: 30,
+            fine_count: 0,
+            tax_arrear_count: 0,
+            violation_count: 0
+        };
+        
+        // 입력 폼 초기화 함수 (New 버튼 클릭 시)
+        function resetForm() {
+            // 1. 입력 필드 초기값으로 되돌리기
+            document.getElementById('income').value = initialValues.income;
+            document.getElementById('korean_level').value = initialValues.korean_level;
+            document.getElementById('age').value = initialValues.age;
+            document.getElementById('fine_count').value = initialValues.fine_count;
+            document.getElementById('tax_arrear_count').value = initialValues.tax_arrear_count;
+            document.getElementById('violation_count').value = initialValues.violation_count;
+            
+            // 드롭다운 및 체크박스 초기화
+            document.getElementById('korean_level').value = '3'; // 기본값 3단계
+            document.getElementById('rec_central').checked = false;
+            document.getElementById('rec_local').checked = false;
+            document.getElementById('rec_corp').checked = false;
+            document.getElementById('long_service').checked = false;
+            document.getElementById('local_area_work').checked = false;
+            document.getElementById('tech_degree').checked = false;
+            document.getElementById('driving_license').checked = false;
+            document.getElementById('major_penalty').checked = false;
+            document.getElementById('career').value = '0'; // Hidden field 초기화
+            
+            // 2. 결과 영역 숨기기
+            document.getElementById('results').style.display = 'none';
+
+            // 3. 입력 영역으로 스크롤 이동
+            document.getElementById('input-area').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
