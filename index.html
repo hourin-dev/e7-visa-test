@@ -5,7 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-7-4 비자 점수 계산기 (개정 점수제 반영)</title>
     <style>
-        /* ... (생략) ... */
+        /* ... (CSS 스타일 생략) ... */
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background-color: #f0f4f7; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); max-width: 450px; margin: 0 auto; }
+        h1 { text-align: center; color: #004d99; }
+        h2 { color: #004d99; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-top: 20px; font-size: 1.2em; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        input[type="number"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        small { color: #888; font-size: 0.85em; margin-top: 3px; display: block; }
+        .checkbox-group { display: flex; align-items: center; margin-top: 10px; }
+        .checkbox-group label { margin-top: 0; font-weight: normal; }
+        .checkbox-group input { width: auto; margin-right: 10px; }
+        .button-group button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1em; transition: background-color 0.3s; }
+        #calculateButton { background-color: #007bff; color: white; }
+        #newInputButton { background-color: #6c757d; color: white; }
+        #results { margin-top: 25px; padding: 15px; border: 1px solid #004d99; border-radius: 8px; background-color: #e9f7ff; }
+        .final-score { font-size: 1.4em; font-weight: bold; color: #cc0000; margin: 10px 0; }
+        .eligibility { font-size: 1.2em; font-weight: bold; padding: 10px; border-radius: 4px; text-align: center; margin-top: 15px; }
+        .eligible { background-color: #d4edda; color: #155724; }
+        .not-eligible { background-color: #f8d7da; color: #721c24; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        .detail-table th, .detail-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .detail-table th { background-color: #f0f0f0; }
+        .status-ok { color: #28a745; font-weight: bold; }
+        .status-fail { color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -16,6 +39,71 @@
         <div id="input-area">
             
             <h2>1. 기본 항목 (자동 계산, 최대 300점)</h2>
+            
+            <label for="income">연간 평균 소득 (원, 최근 2년 평균):</label>
+            <input type="number" id="income" value="30000000" min="25000000">
+            <small>※ 최소 2,500만원 이상 필수 (최소 50점)</small>
+
+            <label for="korean_level">한국어 능력 (TOPIK/KIIP 단계):</label>
+            <select id="korean_level">
+                <option value="1">선택 안함/1급/1단계 (0점)</option>
+                <option value="2">2급/2단계 (50점) - 최소 필수</option>
+                <option value="3" selected>3급/3단계 (80점)</option>
+                <option value="4">4급/4단계 이상 (120점)</option>
+            </select>
+            <small>※ 2급/2단계 이상 필수 (최소 50점)</small>
+
+            <label for="age">만 나이:</label>
+            <input type="number" id="age" value="30" min="19">
+            <small>※ 27세~33세가 60점으로 최고점</small>
+            
+            <input type="hidden" id="career" value="0"> 
+
+            <h2>2. 가점 항목 (항목별 선택, 최대 110점 이상)</h2>
+            
+            <label>가. 추천 및 고용 기여도 (중복 가능):</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="rec_central"> <label for="rec_central">중앙부처 추천 (+30점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="rec_local"> <label for="rec_local">광역 지자체 추천 (+30점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="rec_corp"> <label for="rec_corp">현재 고용 기업체 추천 (+50점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="long_service"> <label for="long_service">현 근무처 3년 이상 근속 (+20점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="local_area_work"> <label for="local_area_work">인구감소/읍면지역 3년 이상 근무 (+20점)</label>
+            </div>
+            
+            <label style="margin-top: 25px;">나. 기술 및 기타 항목 (중복 가능):</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="tech_degree"> <label for="tech_degree">기술 자격증 또는 국내 학위 (+20점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="driving_license"> <label for="driving_license">국내 운전면허증 보유 (+10점)</label>
+            </div>
+            
+            <h2 style="color: #dc3545;">3. 감점 및 제외 항목</h2>
+
+            <label for="fine_count">벌금형 (100만원 미만) 횟수:</label>
+            <input type="number" id="fine_count" value="0" min="0" max="3">
+            <small>※ 1회: -5점, 3회: -20점</small>
+
+            <label for="tax_arrear_count">조세 체납으로 체류허가 제한받은 횟수:</label>
+            <input type="number" id="tax_arrear_count" value="0" min="0" max="3">
+            <small>※ 1회: -5점, 3회: -15점</small>
+
+            <label for="violation_count">출입국관리법 위반 횟수 (3회 이하):</label>
+            <input type="number" id="violation_count" value="0" min="0" max="3">
+            <small>※ 4회 이상 위반 시 즉시 불허됩니다.</small>
+            
+            <div class="checkbox-group" style="margin-top: 15px;">
+                <input type="checkbox" id="major_penalty"> <label for="major_penalty" style="color: #dc3545; font-weight: bold;">[제외] 벌금 100만원 이상 또는 중대 범죄 이력 (-50점)</label>
+            </div>
+
             <div class="button-group">
                 <button id="calculateButton" onclick="calculateScore()">E-7-4 점수 계산 및 진단하기</button>
             </div>
