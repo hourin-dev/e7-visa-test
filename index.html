@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-7-4 비자 점수 계산기 (상세 입력)</title>
+    <title>E-7-4 비자 점수 계산기 (개정 점수제 반영)</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background-color: #f0f4f7; }
         .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); max-width: 450px; margin: 0 auto; }
@@ -15,6 +15,7 @@
 
         /* 체크박스/라디오 버튼을 위한 스타일 */
         .checkbox-group { display: flex; align-items: center; margin-top: 10px; }
+        .checkbox-group label { margin-top: 0; font-weight: normal; }
         .checkbox-group input { width: auto; margin-right: 10px; }
         
         /* 버튼 스타일 */
@@ -24,7 +25,7 @@
         #newInputButton { background-color: #6c757d; color: white; }
         #newInputButton:hover { background-color: #5a6268; }
 
-        /* 결과 영역 스타일 (이전과 동일) */
+        /* 결과 영역 스타일 */
         #results { margin-top: 25px; padding: 15px; border: 1px solid #004d99; border-radius: 8px; background-color: #e9f7ff; }
         .final-score { font-size: 1.4em; font-weight: bold; color: #cc0000; margin: 10px 0; }
         .eligibility { font-size: 1.2em; font-weight: bold; padding: 10px; border-radius: 4px; text-align: center; margin-top: 15px; }
@@ -39,101 +40,90 @@
 </head>
 <body>
     <div class="container">
-        <h1>E-7-4 비자 점수 계산기</h1>
-        <small style="text-align: center; display: block; color: red;">※ 점수 기준은 법무부 고시에 따라 변경될 수 있습니다.</small>
+        <h1>E-7-4 비자 점수 계산기 (최신 개정)</h1>
+        <small style="text-align: center; display: block; color: red;">※ 총점 300점 만점 / 합격 기준 200점 이상</small>
         
         <div id="input-area">
-            <h2>1. 기본 항목 (자동 계산)</h2>
+            
+            <h2>1. 기본 항목 (자동 계산, 최대 300점)</h2>
             <label for="income">연간 평균 소득 (원, 최근 2년 평균):</label>
-            <input type="number" id="income" value="30000000" min="0">
-            <small>※ 최소 2,500만원 이상 필수 (50점)</small>
+            <input type="number" id="income" value="30000000" min="25000000">
+            <small>※ 최소 2,500만원 이상 필수 (최소 50점)</small>
 
             <label for="korean_level">한국어 능력 (TOPIK/KIIP 단계):</label>
-            <input type="number" id="korean_level" value="3" min="1" max="5">
-            <small>※ 최소 2급/2단계 이상 필수 (50점)</small>
+            <select id="korean_level">
+                <option value="1">선택 안함/1급/1단계 (0점)</option>
+                <option value="2">2급/2단계 (50점) - 최소 필수</option>
+                <option value="3" selected>3급/3단계 (80점)</option>
+                <option value="4">4급/4단계 이상 (120점)</option>
+            </select>
+            <small>※ 2급/2단계 이상 필수 (최소 50점)</small>
 
             <label for="age">만 나이:</label>
             <input type="number" id="age" value="30" min="19">
-
-            <h2>2. 선택 항목 (항목별 선택, 최대 60점)</h2>
+            <small>※ 27세~33세가 60점으로 최고점</small>
             
-            <label for="education">학력 (국내 학위 또는 해외 명문대):</label>
-            <select id="education">
-                <option value="0">선택 안함</option>
-                <option value="10">국내 전문학사</option>
-                <option value="15">국내 학사</option>
-                <option value="20">국내 석사 이상</option>
-            </select>
+            <input type="hidden" id="career" value="0"> 
 
-            <label for="assets">국내 자산 보유 여부:</label>
-            <select id="assets">
-                <option value="0">선택 안함 (0점)</option>
-                <option value="20">본인 또는 배우자 명의 국내 자산 (3천만 원 이상) (20점)</option>
-            </select>
-
-            <label for="experience">관련 분야 경력:</label>
-            <select id="experience">
-                <option value="0">선택 안함</option>
-                <option value="10">1년 이상 ~ 3년 미만 (10점)</option>
-                <option value="15">3년 이상 ~ 5년 미만 (15점)</option>
-                <option value="20">5년 이상 (20점)</option>
-            </select>
+            <h2>2. 가점 항목 (항목별 선택, 최대 110점 이상)</h2>
             
-            <h2>3. 가점 항목 (항목별 선택, 최대 35점 이상)</h2>
-
-            <label for="kiip">사회통합프로그램 (KIIP) 이수:</label>
-            <select id="kiip">
-                <option value="0">선택 안함 (0점)</option>
-                <option value="5">KIIP 4단계 이수 (5점)</option>
-                <option value="10">KIIP 5단계 이수 (10점)</option>
-            </select>
-            
+            <label>가. 추천 및 고용 기여도 (중복 가능):</label>
             <div class="checkbox-group">
-                <input type="checkbox" id="domestic_study" value="5">
-                <label for="domestic_study">국내 유학 경험 (5점)</label>
+                <input type="checkbox" id="rec_central"> <label for="rec_central">중앙부처 추천 (+30점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="rec_local"> <label for="rec_local">광역 지자체 추천 (+30점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="rec_corp"> <label for="rec_corp">현재 고용 기업체 추천 (+50점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="long_service"> <label for="long_service">현 근무처 3년 이상 근속 (+20점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="local_area_work"> <label for="local_area_work">인구감소/읍면지역 3년 이상 근무 (+20점)</label>
             </div>
             
+            <label style="margin-top: 25px;">나. 기술 및 기타 항목 (중복 가능):</label>
             <div class="checkbox-group">
-                <input type="checkbox" id="certificate" value="5">
-                <label for="certificate">국내 공인 자격증/면허 보유 (5점)</label>
+                <input type="checkbox" id="tech_degree"> <label for="tech_degree">기술 자격증 또는 국내 학위 (+20점)</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="driving_license"> <label for="driving_license">국내 운전면허증 보유 (+10점)</label>
             </div>
             
-            <div class="checkbox-group">
-                <input type="checkbox" id="recommendation" value="5">
-                <label for="recommendation">주무 부처의 고용 추천서 (5점)</label>
+            <h2 style="color: #dc3545;">3. 감점 및 제외 항목</h2>
+
+            <label for="fine_count">벌금형 (100만원 미만) 횟수:</label>
+            <input type="number" id="fine_count" value="0" min="0" max="3">
+            <small>※ 1회: -5점, 2회: -10점, 3회: -20점</small>
+
+            <label for="tax_arrear_count">조세 체납으로 체류허가 제한받은 횟수:</label>
+            <input type="number" id="tax_arrear_count" value="0" min="0" max="3">
+            <small>※ 1회: -5점, 3회: -15점 (완납시 신청 가능하나 감점)</small>
+
+            <label for="violation_count">출입국관리법 위반 횟수 (3회 이하):</label>
+            <input type="number" id="violation_count" value="0" min="0" max="3">
+            <small>※ 4회 이상 위반 시 즉시 불허됩니다.</small>
+            
+            <div class="checkbox-group" style="margin-top: 15px;">
+                <input type="checkbox" id="major_penalty"> <label for="major_penalty" style="color: #dc3545; font-weight: bold;">[제외] 벌금 100만원 이상 또는 중대 범죄 이력 (-50점)</label>
             </div>
 
-            <label for="long_term">동일 사업장 장기 근속:</label>
-            <select id="long_term">
-                <option value="0">선택 안함 (0점)</option>
-                <option value="5">3년 이상 ~ 4년 미만 (5점)</option>
-                <option value="10">4년 이상 (10점)</option>
-            </select>
-            
-            <h2>4. 감점 항목 (해당 시 선택, 최대 -50점)</h2>
-
-            <label for="violation_count">출입국관리법 위반 횟수 (최근 3년간):</label>
-            <input type="number" id="violation_count" value="0" min="0" max="4">
-            <small>※ 4회 이상은 불허 사유 (감점 -50점)</small>
-            
-            <div class="checkbox-group">
-                <input type="checkbox" id="crime_penalty" value="50">
-                <label for="crime_penalty">국내 형사 범죄 이력 (벌금형 이상) (-50점)</label>
-            </div>
 
             <div class="button-group">
-                <button id="calculateButton" onclick="calculateScore()">E-7-4 점수 계산하기</button>
+                <button id="calculateButton" onclick="calculateScore()">E-7-4 점수 계산 및 진단하기</button>
             </div>
         </div>
 
         <div id="results" style="display:none;">
-            <h2>5. 계산 결과 및 진단</h2>
+            <h2>4. 최종 계산 결과 및 진단 (기준 200점)</h2>
             <div id="score_details"></div>
             
             <div class="final-score">총 합산 점수: <span id="final_score_value">0</span>점</div>
             <div id="eligibility_status" class="eligibility"></div>
             
-            <button id="newInputButton" onclick="resetForm()">New (새 입력 시작)</button>
+            <button id="newInputButton" onclick="resetForm()">새 입력 시작</button>
         </div>
     </div>
 
@@ -143,171 +133,9 @@
             income: 30000000,
             korean_level: 3,
             age: 30,
+            fine_count: 0,
+            tax_arrear_count: 0,
             violation_count: 0
         };
-
-        // E-7-4 점수 계산 함수
-        function calculateScore() {
-            // ==========================================================
-            // 1. 기본 항목 점수 계산 (소득, 한국어, 나이)
-            // ==========================================================
-            const income = parseInt(document.getElementById('income').value) || 0;
-            const koreanLevel = parseInt(document.getElementById('korean_level').value) || 0;
-            const age = parseInt(document.getElementById('age').value) || 0;
-            
-            let incomeScore = 0;
-            if (income >= 40000000) incomeScore = 120;
-            else if (income >= 35000000) incomeScore = 90;
-            else if (income >= 30000000) incomeScore = 70;
-            else if (income >= 25000000) incomeScore = 50;
-
-            let koreanScore = 0;
-            if (koreanLevel >= 4) koreanScore = 120;
-            else if (koreanLevel === 3) koreanScore = 80;
-            else if (koreanLevel === 2) koreanScore = 50;
-
-            let ageScore = 0;
-            if (age >= 19 && age <= 26) ageScore = 60;
-            else if (age >= 27 && age <= 33) ageScore = 50;
-            else if (age >= 34 && age <= 40) ageScore = 30;
-            else if (age >= 41) ageScore = 10; 
-
-            // ==========================================================
-            // 2. 기타 항목 점수 계산 (선택, 가점, 감점)
-            // ==========================================================
-            let optionalScore = 0;
-            let bonusScore = 0;
-            let penaltyScore = 0;
-
-            // 2-1. 선택 항목 (합산)
-            optionalScore += parseInt(document.getElementById('education').value) || 0;
-            optionalScore += parseInt(document.getElementById('assets').value) || 0;
-            optionalScore += parseInt(document.getElementById('experience').value) || 0;
-            
-            // 2-2. 가점 항목 (합산)
-            bonusScore += parseInt(document.getElementById('kiip').value) || 0;
-            if (document.getElementById('domestic_study').checked) bonusScore += 5;
-            if (document.getElementById('certificate').checked) bonusScore += 5;
-            if (document.getElementById('recommendation').checked) bonusScore += 5;
-            bonusScore += parseInt(document.getElementById('long_term').value) || 0;
-            
-            // 2-3. 감점 항목 (합산)
-            const violationCount = parseInt(document.getElementById('violation_count').value) || 0;
-            if (violationCount >= 4) {
-                penaltyScore = 50; // 4회 이상은 전환 불허
-            } else if (violationCount === 3 || violationCount === 2) {
-                penaltyScore = 20;
-            } else if (violationCount === 1) {
-                penaltyScore = 10;
-            }
-            if (document.getElementById('crime_penalty').checked) {
-                penaltyScore += 50; // 범죄는 별도 감점
-            }
-            
-            // 3. 최종 계산
-            const totalScore = incomeScore + koreanScore + ageScore + optionalScore + bonusScore - penaltyScore;
-            
-            // 4. 필수 요건 확인
-            const isIncomeMinMet = incomeScore >= 50;
-            const isKoreanMinMet = koreanScore >= 50;
-            const isTotalScoreMet = totalScore >= 200;
-            const isEligible = isIncomeMinMet && isKoreanMinMet && isTotalScoreMet && penaltyScore < 50; // 4회 이상 위반 시 불허
-
-            // 5. 결과 HTML 생성
-            document.getElementById('final_score_value').innerText = totalScore;
-            
-            const detailsHtml = `
-                <table class="detail-table">
-                    <tr><th>구분</th><th>점수</th><th>최소 필수</th><th>충족</th></tr>
-                    <tr>
-                        <td>소득 (${(income / 10000).toLocaleString()}만원)</td>
-                        <td>${incomeScore}점</td>
-                        <td>50점</td>
-                        <td class="${isIncomeMinMet ? 'status-ok' : 'status-fail'}">${isIncomeMinMet ? '✅ 충족' : '❌ 미달'}</td>
-                    </tr>
-                    <tr>
-                        <td>한국어 (${koreanLevel}단계)</td>
-                        <td>${koreanScore}점</td>
-                        <td>50점</td>
-                        <td class="${isKoreanMinMet ? 'status-ok' : 'status-fail'}">${isKoreanMinMet ? '✅ 충족' : '❌ 미달'}</td>
-                    </tr>
-                    <tr>
-                        <td>나이 (${age}세)</td>
-                        <td>${ageScore}점</td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td>**선택 항목 총점**</td>
-                        <td>**${optionalScore}점**</td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                     <tr>
-                        <td>**가점 총점**</td>
-                        <td>**+${bonusScore}점**</td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                    <tr>
-                        <td>**감점 총점**</td>
-                        <td>**-${penaltyScore}점**</td>
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                </table>
-            `;
-            document.getElementById('score_details').innerHTML = detailsHtml;
-
-            const eligibilityDiv = document.getElementById('eligibility_status');
-            eligibilityDiv.classList.remove('eligible', 'not-eligible');
-            
-            if (penaltyScore >= 50) {
-                 eligibilityDiv.innerText = "🚨 불허 사유 해당: 출입국 관리법 4회 이상 위반 또는 형사 범죄로 전환 불가";
-                 eligibilityDiv.classList.add('not-eligible');
-            } else if (isEligible) {
-                eligibilityDiv.innerText = "🎉 축하합니다! 모든 필수 요건을 충족하여 전환 가능성이 높습니다.";
-                eligibilityDiv.classList.add('eligible');
-            } else {
-                let reason = "⚠️ 요건 미충족";
-                if (!isTotalScoreMet) reason += " (총점 200점 미달)";
-                if (!isIncomeMinMet) reason += " (소득 최소 미달)";
-                if (!isKoreanMinMet) reason += " (한국어 최소 미달)";
-                
-                eligibilityDiv.innerText = reason;
-                eligibilityDiv.classList.add('not-eligible');
-            }
-            
-            // 계산 후 결과 영역 보이기
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // 입력 폼 초기화 함수 (New 버튼 클릭 시)
-        function resetForm() {
-            // 1. 입력 필드 초기값으로 되돌리기
-            document.getElementById('income').value = initialValues.income;
-            document.getElementById('korean_level').value = initialValues.korean_level;
-            document.getElementById('age').value = initialValues.age;
-            document.getElementById('violation_count').value = initialValues.violation_count;
-            
-            // 드롭다운 및 체크박스 초기화
-            document.getElementById('education').value = '0';
-            document.getElementById('assets').value = '0';
-            document.getElementById('experience').value = '0';
-            document.getElementById('kiip').value = '0';
-            document.getElementById('long_term').value = '0';
-            document.getElementById('domestic_study').checked = false;
-            document.getElementById('certificate').checked = false;
-            document.getElementById('recommendation').checked = false;
-            document.getElementById('crime_penalty').checked = false;
-            
-            // 2. 결과 영역 숨기기
-            document.getElementById('results').style.display = 'none';
-
-            // 3. 입력 영역으로 스크롤 이동
-            document.getElementById('input-area').scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
-</body>
-</html>
+        
+        // E-7-4 점수 계산 함수 (개정안
